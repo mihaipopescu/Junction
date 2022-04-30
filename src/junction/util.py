@@ -1,4 +1,6 @@
-from typing import Callable, TypeVar, Iterable, Any
+import click
+
+from typing import Callable, Tuple, TypeVar, Iterable, Any
 
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -50,4 +52,32 @@ class DotDict(OrderedDict):
         except KeyError as ex:
             raise AttributeError(f"No attribute called: {k}") from ex
 
-    __setattr__ = OrderedDict.__setitem__
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        return super().__setattr__(__name, __value)
+
+
+# inspired from https://stackoverflow.com/a/44349292
+class NotRequiredIf(click.Option):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self.not_required_if: list = kwargs.pop("not_required_if")
+        assert self.not_required_if, "'not_required_if' parameter required"
+        kwargs["help"] = (
+            kwargs.get("help", "")
+            + " NOTE: This argument is mutually exclusive with %s"
+            % self.not_required_if
+        ).strip()
+        super(NotRequiredIf, self).__init__(*args, **kwargs)
+
+    def handle_parse_result(self, ctx: Any, opts: Any, args: Any) -> Tuple[Any, Any]:
+        current_opt: bool = self.name in opts
+        for opt in self.not_required_if:
+            if opt in opts:
+                if current_opt:
+                    raise click.UsageError(
+                        "Illegal usage: "
+                        + "'{}' is mutually exclusive with '{}'".format(self.name, opt)
+                    )
+            else:
+                self.prompt = None
+
+        return super(NotRequiredIf, self).handle_parse_result(ctx, opts, args)
