@@ -48,6 +48,7 @@ rope = "^0.16.0"
 pycodestyle = "^2.6.0"
 mypy = "^0.770"
 pyflakes = "^2.2.0"
+types-requests = "^2.27.25"
 
 [tool.poetry.scripts]
 junction = "junction.cli:main"
