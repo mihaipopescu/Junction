@@ -46,7 +46,7 @@ flake8 = "^3.7.9"
 pre-commit = "^2.0.1"
 rope = "^0.16.0"
 pycodestyle = "^2.6.0"
-mypy = "^0.770"
+mypy = "^0.950"
 pyflakes = "^2.2.0"
 types-requests = "^2.27.25"
 
