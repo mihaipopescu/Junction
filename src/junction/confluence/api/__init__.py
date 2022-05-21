@@ -1,5 +1,6 @@
 import requests
 import logging
+from requests.auth import AuthBase
 from urllib.parse import urlencode, urljoin
 from typing import Union, Sequence, Mapping, Any, Tuple, TypeVar, Type
 
@@ -20,8 +21,8 @@ class _ApiClient(object):
         "Content-Type": "application/json",
     }
 
-    def __init__(self, api_url: str, username: str, password: str):
-        self.basic_auth = (username, password)
+    def __init__(self, api_url: str, auth: AuthBase):
+        self.auth = auth
         self.api_url = api_url + "/" if not api_url.endswith("/") else api_url
         self.__json_encoder = ApiEncoder()
 
@@ -119,21 +120,21 @@ class _ApiClient(object):
         logger.debug("Confluence API call %s %s with headers %s", method, url, headers)
 
         if method == "GET":
-            response = requests.get(url, auth=self.basic_auth, headers=headers)
+            response = requests.get(url, auth=self.auth, headers=headers)
         elif method == "POST":
             data = self.__json_encoder.encode(body)
             logger.debug(data)
             response = requests.post(
-                url, data=data, auth=self.basic_auth, headers=headers,
+                url, data=data, auth=self.auth, headers=headers,
             )
         elif method == "PUT":
             data = self.__json_encoder.encode(body)
             logger.debug(data)
             response = requests.put(
-                url, data=data, auth=self.basic_auth, headers=headers,
+                url, data=data, auth=self.auth, headers=headers,
             )
         elif method == "DELETE":
-            response = requests.delete(url, auth=self.basic_auth, headers=headers)
+            response = requests.delete(url, auth=self.auth, headers=headers)
         else:
             raise NotImplementedError(
                 "API client does not support {} method".format(method)

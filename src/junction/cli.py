@@ -14,6 +14,7 @@ from junction.git import (
     get_modifications,
 )
 from junction.delta import Delta, MovePage, UpdatePage, CreatePage, DeletePage
+from junction.util import NotRequiredIf
 
 
 class CliContext(object):
@@ -45,17 +46,29 @@ def __verbosity_count_to_log_level(count: int) -> int:
     "-u",
     "--user",
     envvar="CONFLUENCE_API_USER",
-    required=True,
     help="Login name with which to access the API, usually the account e-mail.",
+    cls=NotRequiredIf,
+    not_required_if=["token"],
 )
 @click.option(
     "-p",
     "--key",
     envvar="CONFLUENCE_API_KEY",
-    required=True,
     prompt="Confluence API Key",
+    cls=NotRequiredIf,
+    not_required_if=["token"],
     hide_input=True,
     help="API key with which to access the API, can be issued from https://id.atlassian.com/manage/api-tokens",
+)
+@click.option(
+    "-t",
+    "--token",
+    envvar="CONFLUENCE_PERSONAL_ACCESS_TOKEN",
+    required=False, # TODO: https://stackoverflow.com/questions/44247099/click-command-line-interfaces-make-options-required-if-other-optional-option-is
+    prompt="Confluence Personal Access Token",
+    cls=NotRequiredIf,
+    not_required_if=["user", "key"],
+    hide_input=True,
 )
 @click.option(
     "-s",
@@ -74,7 +87,7 @@ def main(
     space: str,
     verbose: int,
 ) -> None:
-    """Tools for managing and publishing to a Confleunce Cloud wiki using Markdown files."""
+    """Tools for managing and publishing to a Confluence Cloud wiki using Markdown files."""
     logger = click_log.basic_config()
     logger.setLevel(__verbosity_count_to_log_level(verbose))
     context = CliContext()
